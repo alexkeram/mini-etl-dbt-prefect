@@ -1,3 +1,5 @@
+tqdm
+ipython
 shap
 scikit-learn
 matplotlib
