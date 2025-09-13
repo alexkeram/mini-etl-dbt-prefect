@@ -27,7 +27,7 @@ test:
 	@echo ">>> Pytest (quiet)"
 	@$(PY) -m pytest -q
 
-# Placeholder for now; will run Prefect flow
+# Placeholder for now; will run Prefect flow in the near future
 run:
 	@echo ">>> TODO: Hook up Prefect flow under construction"
 	@$(PY) -c "print('Flow placeholder — will be implemented later')"
