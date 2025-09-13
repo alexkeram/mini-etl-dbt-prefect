@@ -1,0 +1,28 @@
+name: mini_etl_dbt_prefect
+version: 1.0.0
+
+profile: mini_etl_profile
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+
+models:
+  mini_etl_dbt_prefect:
+    +materialized: view
+    staging:
+      +schema: staging
+    marts:
+      +schema: marts
+
+seeds:
+  +delimiter: ','
+
+  mini_etl_dbt_prefect:
+    raw_market_file: {}
+    raw_market_money: {}
+    raw_market_time: {}
+    raw_money:
+      +delimiter: ';'
+      +column_types:
+        id: bigint
+        "Прибыль": varchar

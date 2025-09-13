@@ -1,4 +1,7 @@
 # Cross-platform venv executables
+DBT := dbt --profiles-dir ./profiles
+export DBT_PROFILES_DIR := $(CURDIR)/profiles
+DBT := dbt
 ifeq ($(OS),Windows_NT)
 PY := .venv/Scripts/python.exe
 PIP := .venv/Scripts/pip.exe
@@ -10,7 +13,7 @@ PIP := .venv/bin/pip
 ACT := .venv/bin/activate
 endif
 
-.PHONY: init lint test run clean
+.PHONY: init lint test run clean dbt-seed dbt-run dbt-test dbt-debug
 
 init:
 	@echo ">>> Creating/Updating venv & installing hooks"
@@ -36,3 +39,19 @@ clean:
 	@echo ">>> Cleaning caches"
 	@find . -type d -name "__pycache__" -prune -exec rm -rf {} +
 	@rm -rf .ruff_cache .pytest_cache
+
+dbt-seed:
+	@echo ">>> dbt seed"
+	@$(DBT) seed
+
+dbt-run:
+	@echo ">>> dbt run"
+	@$(DBT) run
+
+dbt-test:
+	@echo ">>> dbt test"
+	@$(DBT) test
+
+dbt-debug:
+	@echo ">>> dbt debug"
+	@$(DBT) debug

@@ -4,7 +4,8 @@ repos:
     hooks:
       - id: black
         args: ["--line-length=100"]
-
+        language_version: python3.12
+        files: '\.pyi?$'
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.9
     hooks:
@@ -17,3 +18,10 @@ repos:
       - id: check-merge-conflict
       - id: end-of-file-fixer
       - id: trailing-whitespace
+
+exclude: |
+  ^target/|
+  ^logs/|
+  ^dbt_packages/|
+  ^\.idea/|
+  ^warehouse\.duckdb$
