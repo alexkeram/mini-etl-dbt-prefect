@@ -50,10 +50,10 @@ teach-model/
 
 ### 4. Model Training
 Models with cross-novel (`RandomizedSearchcv`):
-- Logistic Regression  
-- Decision Tree  
-- K-Nearest Neighbors  
-- Support Vector Classifier (SVC)  
+- Logistic Regression
+- Decision Tree
+- K-Nearest Neighbors
+- Support Vector Classifier (SVC)
 
 Metric: ** ROC AUC **
 
@@ -72,10 +72,10 @@ Metric: ** ROC AUC **
 ## 📈 Key Results
 
 - ** ROC AUC Best Models: **
-  - SVC — 0.902  
-  - Logistic Regression — 0.901  
-  - KNN — 0.888  
-  - Decision Tree — 0.873  
+  - SVC — 0.902
+  - Logistic Regression — 0.901
+  - KNN — 0.888
+  - Decision Tree — 0.873
 
 - ** Risk factors of outflow: **
 - low involvement (fewer pages and categories for a visit)
@@ -117,11 +117,11 @@ jupyter notebook teach-model.ipynb
 ---
 
 ## 📦 Requirements
-- Python 3.9+  
-- pandas, numpy  
-- scikit-learn  
-- matplotlib, seaborn  
-- shap  
+- Python 3.9+
+- pandas, numpy
+- scikit-learn
+- matplotlib, seaborn
+- shap
 
 ---
 

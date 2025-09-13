@@ -5,3 +5,10 @@ scikit-learn
 matplotlib
 numpy
 pandas
+dbt-core
+dbt-duckdb
+duckdb
+prefect
+pytest
+ruff
+pre-commit
