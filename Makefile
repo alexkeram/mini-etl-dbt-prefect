@@ -1,5 +1,4 @@
 # Cross-platform venv executables
-DBT := dbt --profiles-dir ./profiles
 export DBT_PROFILES_DIR := $(CURDIR)/profiles
 DBT := dbt
 ifeq ($(OS),Windows_NT)
@@ -29,6 +28,8 @@ lint:
 test:
 	@echo ">>> Pytest (quiet)"
 	@$(PY) -m pytest -q
+	@echo ">>> dbt tests"
+	@$(DBT) test
 
 # Placeholder for now; will run Prefect flow in the near future
 run:

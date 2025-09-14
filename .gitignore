@@ -9,6 +9,8 @@ warehouse.duckdb
 # IDE
 .idea/
 *.iml
+.vscode/
+*.pyc
 
 # OS
 .DS_Store

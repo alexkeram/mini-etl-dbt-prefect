@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: stg_money
+    description: "Normalized money data from raw_money"
+    columns:
+      - name: money_id
+        description: "Primary key for money rows."
+        tests:
+          - not_null
+          - unique
+
+      - name: profit
+        description: "Profit as DECIMAL(10,2), comma->dot was replaced in staging."
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+  - name: stg_market_time
+    description: "Time-related market data, cleaned & typed."
+    columns:
+      - name: time_chunk_id
+        description: "Primary key"
+        tests:
+          - not_null
+
+
+  - name: stg_market_file
+    description: "File-level market data."
+    columns:
+      - name: customer_id
+        description: "Primary key"
+        tests:
+          - not_null
+
+  - name: stg_market_money
+    description: "Money-related market data."
+    columns:
+      - name: state_id
+        description: "Primary key"
+        tests:
+          - not_null
+      - name: revenue
+        description: "Revenue"
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"

@@ -3,7 +3,7 @@ with src as (
 ),
 clean as (
   select
-    cast(id as bigint) as customer_id,
+    cast(id as bigint) as state_id,
     case lower("Период")
       when 'текущий_месяц' then 'current_month'
       when 'предыдущий_месяц' then 'prev_month'
