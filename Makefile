@@ -28,8 +28,8 @@ lint:
 	@$(PY) -m ruff check .
 
 test:
-	@echo ">>> Pytest (quiet)"
-	@$(PY) -m pytest -q
+	@echo ">>> Pytest"
+	@$(PY) -m pytest
 	@echo ">>> dbt tests"
 	@$(DBT_ENV) $(DBT) test
 

@@ -26,7 +26,6 @@ models:
         tests:
           - not_null
 
-
   - name: stg_market_file
     description: "File-level market data."
     columns:
@@ -42,6 +41,7 @@ models:
         description: "Primary key"
         tests:
           - not_null
+
       - name: revenue
         description: "Revenue"
         tests:
