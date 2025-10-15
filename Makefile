@@ -1,6 +1,8 @@
 # Cross-platform venv executables
 export DBT_PROFILES_DIR := $(CURDIR)/profiles
 DBT := dbt
+DBT_ENV := DBT_PROFILES_DIR="$(CURDIR)/profiles"
+
 ifeq ($(OS),Windows_NT)
 PY := .venv/Scripts/python.exe
 PIP := .venv/Scripts/pip.exe
@@ -18,7 +20,7 @@ init:
 	@echo ">>> Creating/Updating venv & installing hooks"
 	@$(PIP) install -r requirements.txt
 	@pre-commit install
-	@pre-commit run --all-files || true
+	@pre-commit run --all-files
 	@echo ">>> Done. Venv ready, pre-commit installed."
 
 lint:
@@ -29,12 +31,11 @@ test:
 	@echo ">>> Pytest (quiet)"
 	@$(PY) -m pytest -q
 	@echo ">>> dbt tests"
-	@$(DBT) test
+	@$(DBT_ENV) $(DBT) test
 
-# Placeholder for now; will run Prefect flow in the near future
 run:
-	@echo ">>> TODO: Hook up Prefect flow under construction"
-	@$(PY) -c "print('Flow placeholder — will be implemented later')"
+	@echo ">>> Prefect flow"
+	@$(PY) -m flows.etl_flow
 
 clean:
 	@echo ">>> Cleaning caches"
@@ -43,16 +44,16 @@ clean:
 
 dbt-seed:
 	@echo ">>> dbt seed"
-	@$(DBT) seed
+	@$(DBT_ENV) $(DBT) seed
 
 dbt-run:
 	@echo ">>> dbt run"
-	@$(DBT) run
+	@$(DBT_ENV) $(DBT) run
 
 dbt-test:
 	@echo ">>> dbt test"
-	@$(DBT) test
+	@$(DBT_ENV) $(DBT) test
 
 dbt-debug:
 	@echo ">>> dbt debug"
-	@$(DBT) debug
+	@$(DBT_ENV) $(DBT) debug

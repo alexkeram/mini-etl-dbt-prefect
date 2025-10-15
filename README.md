@@ -1,18 +1,29 @@
 # mini-etl-dbt-prefect
 
-A tiny, reproducible ETL showing **raw → staging → marts** on **DuckDB** with **dbt**, orchestrated by **Prefect**.
+Reproducible ETL showing **raw → staging → marts** on **DuckDB** with **dbt**, orchestrated by **Prefect**.
 We optimize for **local speed**, **one-click run**, and **quality via dbt tests**.
 
 ---
 
-## Why this stack
+## What this repository delivers (current state)
 
-- **DuckDB + dbt**: fast local DWH for demos and CI; zero external infra required.
-- **Prefect as code**: Python flow to run `dbt deps/run/test` with retries and logs (added later).
-- **Quality**: only **dbt tests** (not_null / unique / relationships + a simple custom check).
-- **Reproducible**: `Makefile` + `pre-commit` + minimal CI from day one.
+- **Environment & Tooling**
+  - Reproducible local setup: `requirements.txt`, virtualenv, **Makefile** targets.
+  - Code quality gates: **pre-commit** (Black + Ruff) and **minimal CI** (Ruff + Pytest).
 
-> This README captures **Day 1** deliverables only. dbt models, Prefect flow details, and docs arrive on Days 2–5.
+- **Data Warehouse (local)**
+  - **dbt + DuckDB** project with project-local **profiles** and seeds (CSV → DuckDB file).
+  - Clean **staging** models (typing, renaming, dedup/filters) and simple **marts** (dimension/fact).
+
+- **Data Quality**
+  - **dbt tests**: `not_null`, `unique`, `relationships`, and a custom check via
+    `dbt_utils.expression_is_true` (e.g., numeric non-negativity, date lower-bound).
+
+- **Orchestration**
+  - **Prefect flow as code** running `dbt deps → dbt run → dbt test` with **retries** and **informative logs**.
+  - Single-command run: `python -m flows.etl_flow` or `make run`.
+
+> Scope intentionally minimal and fast for local demos and CI. No external infra or Prefect deployments required.
 
 ---
 
@@ -20,230 +31,166 @@ We optimize for **local speed**, **one-click run**, and **quality via dbt tests*
 
 - **Python 3.11**
 - **Git for Windows** (includes **Git Bash**)
-- **GNU Make** (recommended on Windows)
+- **GNU Make** (recommended; optional)
   - With Chocolatey: `choco install make`
-  - Or use Git Bash which typically includes `make` on many setups
-
-> In JetBrains **DataSpell**: set the project interpreter to `.\.venv\Scripts\python.exe` after creating the venv.
+- JetBrains **DataSpell** (optional): set interpreter to `.\.venv\Scripts\python.exe` after creating the venv.
 
 ---
 
 ## Quickstart
 
+### Create and activate a virtualenv
 ```powershell
-# 1) Create and activate a local virtualenv (PowerShell)
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-
-# 2) Install dependencies and enable pre-commit hooks
-pip install -r requirements.txt
-pre-commit install
-
-# 3) One-click actions (requires `make`)
-make init   # install deps + pre-commit run on all files (once)
-make lint   # ruff check (auto-fix simple issues)
-make fmt    # black formatting
-make test   # pytest -q (has a smoke test today)
-make run    # placeholder ETL flow (real Prefect flow on Day 4)
 ```
 
-**No `make`?** Use the equivalent PowerShell commands:
+### Install dependencies & pre-commit
+```powershell
+pip install -r requirements.txt
+pre-commit install
+pre-commit run --all-files
+```
+
+### One-click actions (with `make`)
+```powershell
+make init   # install deps + run pre-commit on all files
+make lint   # ruff check (auto-fix simple issues)
+make test   # pytest -q + dbt tests (when configured)
+make run    # Prefect flow: dbt deps → run → test
+make clean  # clean cached files
+```
+
+**No `make`?** Use the equivalents:
 ```powershell
 # init
 pip install -r requirements.txt
 pre-commit install
+pre-commit run --all-files
 
 # run
 python -m flows.etl_flow
 
-# test
+# tests
 pytest -q
-
-# format + lint
-black .
-ruff check . --fix
+dbt test
 ```
 
 ---
 
-## Project Layout (Day 1)
+## Configuration
 
-```
-mini-etl-dbt-prefect/
-  flows/
-    etl_flow.py          # Prefect flow placeholder (real flow on Day 4)
-  tests/
-    test_smoke.py        # lightweight smoke test so CI is green on Day 1
-  requirements.txt
-  Makefile
-  .pre-commit-config.yaml
-  .github/
-    workflows/
-      ci.yml             # minimal CI: ruff + pytest
-  README.md
-```
+### DuckDB & dbt
 
----
+- Project file: `dbt_project.yml`
+- Local profile: `profiles/profiles.yml` (project-local for reproducibility)
 
-## Files Added/Updated Today
-
-### 1) `requirements.txt`
-
-```txt
-# core
-dbt-core>=1.6,<2.0
-dbt-duckdb>=1.6,<2.0
-duckdb>=1.0.0
-prefect>=2.14
-
-# quality & tooling
-pytest>=7.4
-ruff>=0.4
-black>=24.4
-pre-commit>=3.6
-```
-
-> Purpose: lock in core tools for Day 1 and coming days (dbt, DuckDB, Prefect, pytest, ruff, black, pre-commit).
-
----
-
-### 2) `.pre-commit-config.yaml`
-
+Example `profiles/profiles.yml`:
 ```yaml
-repos:
-  - repo: https://github.com/psf/black
-    rev: 24.8.0
-    hooks:
-      - id: black
-        language_version: python3
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9
-    hooks:
-      - id: ruff
-        args: [--fix]
+mini_etl_profile:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ./warehouse.duckdb
+      schema: analytics
+      threads: 4
 ```
 
-> Purpose: enforce consistent code style and quick feedback **before** pushing (auto-fixes included).
+Set the profile location for the current PowerShell session:
+```powershell
+$Env:DBT_PROFILES_DIR = "$(Get-Location)\profiles"
+dbt debug   # should end with "Connection test: OK"
+```
+
+### Seeds (CSV → DuckDB)
+
+- Place demo/real CSVs under `seeds/` (UTF-8).
+- If your CSVs use `;` as a delimiter or contain non-ASCII headers, configure in `dbt_project.yml`:
+```yaml
+seeds:
+  mini_etl_dbt_prefect:
+    +delimiter: ";"
+```
+
+Load seeds:
+```powershell
+dbt seed
+```
 
 ---
 
-### 3) `flows/etl_flow.py` (placeholder)
+## Models
 
-```python
-# flows/etl_flow.py
-def main():
-    print("ETL flow placeholder (Day 1). Real Prefect flow will appear on Day 4.")
+- **Staging** (`models/staging/*`): cleaning & typing (e.g., `replace(',', '.')` for decimals, `cast(...)` to date/number, column renames to English).
+- **Marts** (`models/marts/*`): analytics-friendly models (dimensions/facts).
 
-if __name__ == "__main__":
-    main()
+
+
+Run models:
+```powershell
+dbt run
 ```
 
-> Purpose: make `python -m flows.etl_flow` and `make run` do something today, so the repo is runnable.
+
 
 ---
 
-### 4) `tests/test_smoke.py`
+## Orchestration (Prefect)
 
-```python
-# tests/test_smoke.py
-def test_smoke():
-    assert True
+**Flow-as-code** that runs `dbt deps → dbt run → dbt test` with retries and logs.
+
+- Entry point: `flows/etl_flow.py`
+- Run from project root:
+```powershell
+python -m flows.etl_flow
 ```
+- Parameters (edit at the bottom of `flows/etl_flow.py` or call the function directly):
+  - `project_dir` (default `.`)
+  - `target` (optional; from `profiles.yml`)
+  - `threads` (default `4`)
+  - `full_refresh` (default `False`)
 
-> Purpose: let `pytest -q` pass in CI even before real tests are added (Day 6).
+Example one-off run with custom params:
+```powershell
+python -c "from flows.etl_flow import etl_flow; etl_flow(project_dir='.', threads=8, full_refresh=True)"
+```
 
 ---
 
-### 5) `Makefile`
+## Makefile targets
 
 ```make
-.PHONY: init run test fmt lint
-
-init:
-	python -m pip install --upgrade pip
-	pip install -r requirements.txt
-	pre-commit install
-	pre-commit run --all-files || true
-
-run:
-	python -m flows.etl_flow
-
-test:
-	pytest -q
-
-fmt:
-	black .
-
-lint:
-	ruff check . --fix
+init:  # install deps + run pre-commit on all files
+lint:  # ruff check (auto-fix simple issues)
+test:  # pytest -q (+ dbt test if configured)
+run:   # python -m flows.etl_flow
+clean: # rm -rf .ruff_cache .pytest_cache
 ```
 
-> Purpose: **one-click run** for common tasks locally and in CI.
+---
 
-> Windows note: if you don’t want to install `make`, use the PowerShell equivalents shown in **Quickstart**.
+## Continuous Integration (CI)
+
+`.github/workflows/ci.yml` runs on every push/PR:
+- **Ruff** (lint)
+- **Pytest** (unit tests)
+
+> dbt execution can be added to CI later, once models are stable and CI artifacts are sized appropriately.
 
 ---
 
-### 6) GitHub Actions CI — `.github/workflows/ci.yml`
+## What's next
 
-```yaml
-name: ci
+- Generate **dbt docs** locally and add a simple **raw→staging→marts** diagram to the README.
+- Add **3 Pytest sanity checks** (non‑empty CSV, expected columns in `fct_orders`, `sum(amount) > 0`) and keep them in CI.
+- Do a **clean‑clone smoke run** (`make init/run/test`) and tighten the README where needed.
 
-on:
-  push:
-  pull_request:
-
-jobs:
-  lint-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Ruff
-        run: ruff check . --output-format=github
-
-      - name: Pytest
-        run: pytest -q
-```
-
-> Purpose: fast quality signal on every push/PR. Today it runs `ruff` and `pytest` only.
-
----
-
-## One-Click Verification Checklist (Day 1)
-
-- [ ] `make init` finishes without errors (hooks installed, initial formatting applied).
-- [ ] `make lint` passes (or auto-fixes and passes on re-run).
-- [ ] `make test` shows `1 passed`.
-- [ ] `make run` prints the placeholder line.
-- [ ] GitHub Actions shows a green run on the latest commit (Ruff + Pytest).
-
----
-
-## Roadmap (Two Weeks)
-
-**Week 1**
-- Day 2 — `dbt init` on DuckDB; `profiles.yml` pointing to `warehouse.duckdb`.
-- Day 3 — dbt tests (not_null, unique, relationships, + one custom expression).
-- Day 4 — Prefect flow calling `dbt deps → run → test` with retries and logging.
-- Day 5 — `dbt docs generate` locally + README v1 with architecture diagram.
-- Day 6 — Python sanity tests (non-empty CSV, required columns, simple aggregate invariant).
-- Day 7 — Clean clone test; ensure `make init/run/test` works from scratch.
-
-**Week 2**
-- Incremental models: `materialized: incremental`, `strategy: delete+insert`, `unique_key`, `on_schema_change: append_new_columns`.
-- CI extension to include `dbt run/test` (Day 12).
-- Polishing and final README/docs.
+**Then:**
+- Add a couple of **custom dbt tests** and document quality gates.
+- Set up an **OS cron** example to run `python -m flows.etl_flow` on a schedule.
+- Implement **incremental models** (delete+insert, `unique_key`, `on_schema_change: append_new_columns`).
+- Produce a tiny **quality report** from `target/test_results.json`.
+- **Extend CI** to run `dbt deps/run/test`.
+- Final polish and a lightweight release tag.
