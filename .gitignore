@@ -2,6 +2,7 @@
 target/
 dbt_packages/
 logs/
+.DS_Store
 
 # local DuckDB file
 warehouse.duckdb
@@ -11,6 +12,8 @@ warehouse.duckdb
 *.iml
 .vscode/
 *.pyc
+*.pyo
+*.pyd
 
 # OS
 .DS_Store
