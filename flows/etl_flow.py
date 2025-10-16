@@ -29,14 +29,24 @@ def run_cmd(cmd: List[str], cwd: Optional[str] = None, env: Optional[dict] = Non
 
 @task(
     retries=2,
-    retry_delay_seconds=30,
+    retry_delay_seconds=10,
     cache_key_fn=task_input_hash,
-    cache_expiration=timedelta(minutes=30),
+    cache_expiration=timedelta(minutes=10),
 )
 def dbt_deps(project_dir: str):
     logger = get_run_logger()
     logger.info("Installing dbt packages (dbt deps)")
     run_cmd(["dbt", "deps"], cwd=project_dir)
+
+
+@task(
+    retries=2,
+    retry_delay_seconds=10,
+)
+def dbt_seed(project_dir: str):
+    logger = get_run_logger()
+    logger.info("Loading seeds (dbt seed)")
+    run_cmd(["dbt", "seed"], cwd=project_dir)
 
 
 @task(
@@ -56,7 +66,7 @@ def dbt_run(project_dir: str, target: Optional[str], threads: int, full_refresh:
 
 @task(
     retries=2,
-    retry_delay_seconds=30,
+    retry_delay_seconds=10,
 )
 def dbt_test(project_dir: str, target: Optional[str], threads: int):
     logger = get_run_logger()
@@ -92,6 +102,7 @@ def etl_flow(
     )
 
     dbt_deps(project_dir)
+    dbt_seed(project_dir)
     dbt_run(project_dir, target, threads, full_refresh)
     dbt_test(project_dir, target, threads)
 
@@ -99,5 +110,4 @@ def etl_flow(
 
 
 if __name__ == "__main__":
-    # sensible defaults for local development
     etl_flow(project_dir=".", target=None, threads=4, full_refresh=False)

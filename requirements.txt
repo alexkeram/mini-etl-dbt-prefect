@@ -3,7 +3,7 @@ ipython
 shap
 scikit-learn
 matplotlib
-numpy
+numpy==2.3.3
 pandas
 dbt-core
 dbt-duckdb
