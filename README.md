@@ -1,7 +1,7 @@
 # mini-etl-dbt-prefect
 
 Reproducible ETL showing **raw → staging → marts** on **DuckDB** with **dbt**, orchestrated by **Prefect**.
-We optimize for **local speed**, **one-click run**, and **quality via dbt tests**.
+Optimized for **local speed**, **one-click run**, and **quality via dbt tests**.
 
 ---
 
@@ -21,60 +21,62 @@ We optimize for **local speed**, **one-click run**, and **quality via dbt tests*
 
 - **Orchestration**
   - **Prefect flow as code** running `dbt deps → dbt run → dbt test` with **retries** and **informative logs**.
-  - Single-command run: `python -m flows.etl_flow` or `make run`.
+  - Single-command run: `make run`.
 
 > Scope intentionally minimal and fast for local demos and CI. No external infra or Prefect deployments required.
 
 ---
 
-## Prerequisites (Windows)
+## Prerequisites
 
-- **Python 3.11**
-- **Git for Windows** (includes **Git Bash**)
-- **GNU Make** (recommended; optional)
-  - With Chocolatey: `choco install make`
-- JetBrains **DataSpell** (optional): set interpreter to `.\.venv\Scripts\python.exe` after creating the venv.
+- **Python 3.12+**
+- **Git**
+- **GNU Make**
+  - Windows: install via Chocolatey — `choco install make`
+  - macOS (Xcode Command Line Tools) — `xcode-select --install`
+  - Linux — your package manager (`sudo apt install make`, `sudo dnf install make`, etc.)
+
+> If `make` is not available, see the **No-make fallback** below — but the recommended path is with `make`.
 
 ---
 
-## Quickstart
+## 🚀 Setup & Run
 
-### Create and activate a virtualenv
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
+```bash
+git clone https://github.com/alexkeram/mini-etl-dbt-prefect
+cd mini-etl-dbt-prefect
+make init     # creates .venv, upgrades pip, installs deps, installs & runs pre-commit
+make run      # runs Prefect flow: dbt deps → seed → run → test
+# optionally
+make test     # pytest + dbt test
 ```
 
-### Install dependencies & pre-commit
-```powershell
-pip install -r requirements.txt
-pre-commit install
-pre-commit run --all-files
+That’s it — from clean clone to running flow in **two commands** (`make init`, `make run`).
+
+---
+
+## No‑make fallback (optional)
+
+If you can’t (or somehow don’t want to) use `make`, you can run the same steps manually.
+Below are shell-agnostic recipes (PowerShell / Bash).
+
+### 1) Create a virtualenv and upgrade pip
+```bash
+# Use whichever command is available: python OR python3
+python -m venv .venv || python3 -m venv .venv
+./.venv/Scripts/python -m pip install --upgrade pip wheel || ./.venv/bin/python -m pip install --upgrade pip wheel
 ```
 
-### One-click actions (with `make`)
-```powershell
-make init   # install deps + run pre-commit on all files
-make lint   # ruff check (auto-fix simple issues)
-make test   # pytest -q + dbt tests (when configured)
-make run    # Prefect flow: dbt deps → run → test
-make clean  # clean cached files
+### 2) Install requirements and pre-commit hooks
+```bash
+./.venv/Scripts/python -m pip install -r requirements.txt || ./.venv/bin/python -m pip install -r requirements.txt
+./.venv/Scripts/python -m pre_commit install || ./.venv/bin/python -m pre_commit install
+./.venv/Scripts/python -m pre_commit run --all-files || ./.venv/bin/python -m pre_commit run --all-files
 ```
 
-**No `make`?** Use the equivalents:
-```powershell
-# init
-pip install -r requirements.txt
-pre-commit install
-pre-commit run --all-files
-
-# run
-python -m flows.etl_flow
-
-# tests
-pytest -q
-dbt test
+### 3) Run the flow
+```bash
+./.venv/Scripts/python -m flows.etl_flow || ./.venv/bin/python -m flows.etl_flow
 ```
 
 ---
@@ -98,99 +100,47 @@ mini_etl_profile:
       threads: 4
 ```
 
-Set the profile location for the current PowerShell session:
-```powershell
-$Env:DBT_PROFILES_DIR = "$(Get-Location)\profiles"
-dbt debug   # should end with "Connection test: OK"
-```
-
-### Seeds (CSV → DuckDB)
-
-- Place demo/real CSVs under `seeds/` (UTF-8).
-- If your CSVs use `;` as a delimiter or contain non-ASCII headers, configure in `dbt_project.yml`:
-```yaml
-seeds:
-  mini_etl_dbt_prefect:
-    +delimiter: ";"
-```
-
-Load seeds:
-```powershell
-dbt seed
-```
-
----
-
-## Models
-
-- **Staging** (`models/staging/*`): cleaning & typing (e.g., `replace(',', '.')` for decimals, `cast(...)` to date/number, column renames to English).
-- **Marts** (`models/marts/*`): analytics-friendly models (dimensions/facts).
-
-
-
-Run models:
-```powershell
-dbt run
-```
-
-
-
----
-
-## Orchestration (Prefect)
-
-**Flow-as-code** that runs `dbt deps → dbt run → dbt test` with retries and logs.
-
-- Entry point: `flows/etl_flow.py`
-- Run from project root:
-```powershell
-python -m flows.etl_flow
-```
-- Parameters (edit at the bottom of `flows/etl_flow.py` or call the function directly):
-  - `project_dir` (default `.`)
-  - `target` (optional; from `profiles.yml`)
-  - `threads` (default `4`)
-  - `full_refresh` (default `False`)
-
-Example one-off run with custom params:
-```powershell
-python -c "from flows.etl_flow import etl_flow; etl_flow(project_dir='.', threads=8, full_refresh=True)"
-```
+The project already sets `DBT_PROFILES_DIR` to `./profiles` via the **Makefile**,
+so no extra env setup is required for standard runs.
 
 ---
 
 ## Makefile targets
 
 ```make
-init:  # install deps + run pre-commit on all files
-lint:  # ruff check (auto-fix simple issues)
-test:  # pytest -q (+ dbt test if configured)
-run:   # python -m flows.etl_flow
-clean: # rm -rf .ruff_cache .pytest_cache
+init  # create venv, upgrade pip, install deps, install & run pre-commit
+run   # Prefect flow: dbt deps → seed → run → test
+test  # pytest + dbt test
+lint  # ruff check
+clean # remove caches
+```
+
+---
+
+## Troubleshooting
+
+- **`Python not found`**: install Python 3.12+ and ensure it’s on your PATH. Then re-run `make init`.
+- **dbt adapter mismatch**: if you pin `dbt-core` to `1.10.x`, prefer `dbt-duckdb == 1.10.*` for perfect compatibility.
+- **Pydantic warning about `Field(default='UTC')`**: harmless; does not affect execution.
+
+---
+
+## Orchestration details (reference)
+
+Flow entry point: `flows/etl_flow.py` runs the sequence
+`dbt deps → dbt seed → dbt run → dbt test` with retries and logs.
+
+Run with custom params if needed:
+```bash
+python -c "from flows.etl_flow import etl_flow; etl_flow(project_dir='.', threads=8, full_refresh=True)"
 ```
 
 ---
 
 ## Continuous Integration (CI)
 
-`.github/workflows/ci.yml` runs on every push/PR:
+`.github/workflows/ci.yml` runs on push/PR:
 - **Ruff** (lint)
 - **Pytest** (unit tests)
 
 > dbt execution can be added to CI later, once models are stable and CI artifacts are sized appropriately.
-
----
-
-## What's next
-
-- Generate **dbt docs** locally and add a simple **raw→staging→marts** diagram to the README.
-- Add **3 Pytest sanity checks** (non‑empty CSV, expected columns in `fct_orders`, `sum(amount) > 0`) and keep them in CI.
-- Do a **clean‑clone smoke run** (`make init/run/test`) and tighten the README where needed.
-
-**Then:**
-- Add a couple of **custom dbt tests** and document quality gates.
-- Set up an **OS cron** example to run `python -m flows.etl_flow` on a schedule.
-- Implement **incremental models** (delete+insert, `unique_key`, `on_schema_change: append_new_columns`).
-- Produce a tiny **quality report** from `target/test_results.json`.
-- **Extend CI** to run `dbt deps/run/test`.
-- Final polish and a lightweight release tag.
