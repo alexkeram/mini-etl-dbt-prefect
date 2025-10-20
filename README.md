@@ -5,6 +5,17 @@ Optimized for **local speed**, **one-click run**, and **quality via dbt tests**.
 
 ---
 
+## What's in the analytical part
+
+- Added **ML churn model (Logistic Regression, ROC AUC ≈ 0.93)** trained on marts-layer data.
+- Introduced **customer segmentation** (A/B/C) based on churn risk, profit, and behavior.
+- Implemented **Prefect + dbt + scikit-learn** integration for end-to-end reproducibility.
+- Added **EDA**, **feature interpretation (SHAP)**, and **business recommendations** sections.
+
+Results are documented in the final Jupyter notebook.
+
+---
+
 ## What this repository delivers (current state)
 
 - **Environment & Tooling**
@@ -117,13 +128,6 @@ clean # remove caches
 
 ---
 
-## Troubleshooting
-
-- **`Python not found`**: install Python 3.12+ and ensure it’s on your PATH. Then re-run `make init`.
-- **dbt adapter mismatch**: if you pin `dbt-core` to `1.10.x`, prefer `dbt-duckdb == 1.10.*` for perfect compatibility.
-- **Pydantic warning about `Field(default='UTC')`**: harmless; does not affect execution.
-
----
 
 ## Orchestration details (reference)
 

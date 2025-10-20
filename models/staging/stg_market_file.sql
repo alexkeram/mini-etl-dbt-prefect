@@ -9,7 +9,7 @@ clean as (
     case lower("Покупательская активность")
       when 'снизилась' then 'decreased'
       when 'выросла'   then 'increased'
-      when 'стабильно' then 'stable'
+      when 'прежний уровень' then 'stable'
       else lower("Покупательская активность")
     end                                                        as customer_activity,
 
@@ -27,12 +27,22 @@ clean as (
       when 'нет' then false
       else null
     end                                                        as allow_notifications,
+
+    -- popular category
+    case lower(cast("Популярная_категория" as varchar))
+      when 'товары для детей' then 'for children'
+      when 'техника для красоты и здоровья' then 'for beauty and health'
+      when 'мелкая бытовая техника и электроника' then 'gadgets'
+      when 'кухонная посуда' then 'kitchenware'
+      when 'косметика и аксессуары' then 'cosmetics and accessories'
+      when 'домашний текстиль' then 'home textiles'
+      else null
+    end                                                        as popular_category,
     cast("Длительность" as integer)                            as duration_days,
     cast(replace(replace(cast("Маркет_актив_6_мес" as varchar), ' ', ''), ',', '.') as decimal(10,2)) as marketing_activity_6m,
     cast(replace(replace(cast("Маркет_актив_тек_мес" as varchar), ' ', ''), ',', '.') as decimal(10,2)) as marketing_activity_curr_m,
     cast(replace(replace(cast("Акционные_покупки" as varchar), ' ', ''), ',', '.') as decimal(10,2)) as promo_purchases,
 
-    cast("Популярная_категория" as varchar)                    as popular_category,
     cast("Средний_просмотр_категорий_за_визит" as integer)     as avg_categories_per_visit,
     cast("Неоплаченные_продукты_штук_квартал" as integer)      as unpaid_products_qtr,
     cast("Ошибка_сервиса" as integer)                          as service_error_flag,

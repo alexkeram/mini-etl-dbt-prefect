@@ -1,14 +1,16 @@
 # --- dbt profiles ---
 export DBT_PROFILES_DIR := $(CURDIR)/profiles
-
+DBT_ENV := DBT_PROFILES_DIR="$(CURDIR)/profiles"
 # --- venv executables ---
 ifeq ($(OS),Windows_NT)
 PY    := .venv/Scripts/python.exe
 PIP   := .venv/Scripts/pip.exe
+DBT   := .venv/Scripts/dbt.exe
 SHELL := bash
 else
 PY    := .venv/bin/python
 PIP   := .venv/bin/pip
+DBT   := .venv/bin/dbt
 endif
 
 # Call dbt
@@ -63,16 +65,26 @@ clean-venv:
 
 dbt-seed:
 	@echo ">>> dbt seed"
-	@$(DBT_CMD) seed --profiles-dir "$(DBT_PROFILES_DIR)"
+	@$(DBT_ENV) "$(DBT)" seed
 
 dbt-run:
 	@echo ">>> dbt run"
-	@$(DBT_CMD) run --profiles-dir "$(DBT_PROFILES_DIR)"
+	@$(DBT_ENV) "$(DBT)" run
 
 dbt-test:
 	@echo ">>> dbt test"
-	@$(DBT_CMD) test --profiles-dir "$(DBT_PROFILES_DIR)"
+	@$(DBT_ENV) "$(DBT)" test
 
 dbt-debug:
 	@echo ">>> dbt debug"
-	@$(DBT_CMD) debug --profiles-dir "$(DBT_PROFILES_DIR)"
+	@$(DBT_ENV) "$(DBT)" debug
+
+# --- DBT docs ---
+docs:
+	@echo ">>> dbt docs generate"
+	@$(DBT_ENV) "$(DBT)" docs generate
+	@echo ">>> Docs built at: $(CURDIR)/target/index.html"
+
+docs-serve:
+	@echo ">>> dbt docs serve (Ctrl+C to stop)"
+	@$(DBT_ENV) "$(DBT)" docs serve --port 8080 --no-browser
