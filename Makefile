@@ -88,3 +88,21 @@ docs:
 docs-serve:
 	@echo ">>> dbt docs serve (Ctrl+C to stop)"
 	@$(DBT_ENV) "$(DBT)" docs serve --port 8080 --no-browser
+
+# Windows-only schedule shortcuts. Safe no-ops on other OS.
+
+schedule:
+	@echo ">>> Registering Windows Task Scheduler job (02:00 daily)"
+	@powershell -NoProfile -ExecutionPolicy Bypass -File .venv/Scripts/register_task.ps1
+
+unschedule:
+	@echo ">>> Removing Windows Task Scheduler job"
+	@powershell -NoProfile -ExecutionPolicy Bypass -File .venv/Scripts/unregister_task.ps1
+
+schedule-run:
+	@echo ">>> Triggering the scheduled task now"
+	@powershell -NoProfile -ExecutionPolicy Bypass -File .venv/Scripts/run_task_now.ps1
+
+schedule-status:
+	@echo ">>> Task status"
+	@powershell -NoProfile -ExecutionPolicy Bypass -File .venv/Scripts/status_task.ps1

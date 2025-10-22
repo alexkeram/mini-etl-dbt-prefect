@@ -128,6 +128,25 @@ clean # remove caches
 
 ---
 
+### Windows schedule
+
+A venv-aware runner at `.venv/Scripts/run_etl.cmd` that:
+- uses `.venv/Scripts/python.exe`,
+- sets `DBT_PROFILES_DIR=./profiles`,
+- runs `python -m flows.etl_flow`,
+- logs to `./logs/cron.log`.
+
+Install the scheduled task (02:00 daily):
+
+```bash
+make schedule
+make schedule-status
+make schedule-run   # trigger now to test; then check logs/cron.log
+make unschedule     # remove
+```
+You can change the schedule time in the .venv\Scripts\register_tsk.ps1 file.
+___
+
 
 ## Orchestration details (reference)
 
