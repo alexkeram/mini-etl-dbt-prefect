@@ -38,6 +38,8 @@ init: venv
 	@echo ">>> Installing pre-commit hooks"
 	@$(PY) -m pre_commit install
 	@$(PY) -m pre_commit run --all-files
+	@echo ">>> Installing sitecustomize to venv"
+	@$(PY) tools/install_sitecustomize.py
 	@echo ">>> Done. Venv ready, pre-commit installed."
 
 lint:
@@ -93,16 +95,16 @@ docs-serve:
 
 schedule:
 	@echo ">>> Registering Windows Task Scheduler job (02:00 daily)"
-	@powershell -NoProfile -ExecutionPolicy Bypass -File .venv/Scripts/register_task.ps1
+	@powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register_task.ps1
 
 unschedule:
 	@echo ">>> Removing Windows Task Scheduler job"
-	@powershell -NoProfile -ExecutionPolicy Bypass -File .venv/Scripts/unregister_task.ps1
+	@powershell -NoProfile -ExecutionPolicy Bypass -File scripts/unregister_task.ps1
 
 schedule-run:
 	@echo ">>> Triggering the scheduled task now"
-	@powershell -NoProfile -ExecutionPolicy Bypass -File .venv/Scripts/run_task_now.ps1
+	@powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run_task_now.ps1
 
 schedule-status:
 	@echo ">>> Task status"
-	@powershell -NoProfile -ExecutionPolicy Bypass -File .venv/Scripts/status_task.ps1
+	@powershell -NoProfile -ExecutionPolicy Bypass -File scripts/status_task.ps1

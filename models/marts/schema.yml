@@ -2,34 +2,52 @@ version: 2
 
 models:
   - name: dim_customer
-    tests:
-      - unique:
-          column_name: customer_id
-      - not_null:
-          column_name: customer_id
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
 
   - name: fct_revenue_clean
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
+      - name: period
+        tests: [not_null]
     tests:
-      - relationships:
-          column_name: customer_id
-          to: ref('dim_customer')
-          field: customer_id
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ['customer_id', 'period']
 
   - name: fct_time
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
+      - name: period
+        tests: [not_null]
     tests:
-      - relationships:
-          column_name: customer_id
-          to: ref('dim_customer')
-          field: customer_id
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ['customer_id', 'period']
 
   - name: fct_profit
-    tests:
-      - relationships:
-          column_name: customer_id
-          to: ref('dim_customer')
-          field: customer_id
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
 
   - name: modeling_dataset
-    tests:
-      - unique:
-          column_name: customer_id
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
