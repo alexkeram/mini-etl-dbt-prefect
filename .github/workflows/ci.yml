@@ -7,6 +7,10 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    
+    env:
+      DBT_PROFILES_DIR: ${{ github.workspace }}/profiles
+      
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,3 +30,16 @@ jobs:
 
       - name: Pytest
         run: pytest -q
+        
+        # dbt part:
+      - name: dbt deps
+        run: make dbt-deps
+
+      - name: dbt seed
+        run: make dbt-seed
+
+      - name: dbt run
+        run: make dbt-run
+
+      - name: dbt test
+        run: make dbt-test
