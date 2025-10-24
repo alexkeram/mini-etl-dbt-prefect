@@ -19,7 +19,8 @@ models:
         tests: [not_null]
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: ['customer_id', 'period']
+          arguments:
+            combination_of_columns: ['customer_id', 'period']
 
   - name: fct_time
     columns:
@@ -34,7 +35,8 @@ models:
         tests: [not_null]
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: ['customer_id', 'period']
+          arguments:
+            combination_of_columns: ['customer_id', 'period']
 
   - name: fct_profit
     columns:
