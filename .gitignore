@@ -15,9 +15,6 @@ warehouse.duckdb
 *.pyo
 *.pyd
 
-# OS
-.DS_Store
-
 # Python
 .venv/
 venv/
