@@ -34,6 +34,8 @@ Results are documented in the final Jupyter notebook.
   - **Prefect flow as code** running `dbt deps → dbt run → dbt test` with **retries** and **informative logs**.
   - Single-command run: `make run`.
 
+- **Data quality report**
+  - Generate a short, human-readable report from `dbt test` results
 > Scope intentionally minimal and fast for local demos and CI. No external infra or Prefect deployments required.
 
 ---
@@ -128,7 +130,7 @@ clean # remove caches
 
 ---
 
-### Windows schedule
+## Windows schedule
 
 A venv-aware runner at `.venv/Scripts/run_etl.cmd` that:
 - uses `.venv/Scripts/python.exe`,
@@ -167,3 +169,13 @@ python -c "from flows.etl_flow import etl_flow; etl_flow(project_dir='.', thread
 - **Pytest** (unit tests)
 
 > dbt execution can be added to CI later, once models are stable and CI artifacts are sized appropriately.
+
+## Data Quality Report
+
+Generate a short, human-readable report from `dbt test` results:
+
+```bash
+make quality
+# outputs:
+# - reports/quality_report.md   (Markdown for humans)
+# - reports/quality_report.json (JSON for tooling)

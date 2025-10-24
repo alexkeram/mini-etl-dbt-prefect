@@ -46,6 +46,10 @@ lint:
 	@echo ">>> Ruff check"
 	@$(PY) -m ruff check .
 
+dbt-deps:
+	@echo ">>> dbt deps"
+	@$(DBT_ENV) "$(DBT)" deps
+
 test:
 	@echo ">>> Pytest"
 	@$(PY) -m pytest
@@ -108,3 +112,13 @@ schedule-run:
 schedule-status:
 	@echo ">>> Task status"
 	@powershell -NoProfile -ExecutionPolicy Bypass -File scripts/status_task.ps1
+
+quality:
+	@echo ">>> Running dbt tests"
+	@dbt test
+	@echo ">>> Generating quality report (Markdown + JSON)"
+	@$(PY) scripts/quality_report.py
+
+# Opens md-report in an associated app
+quality-open:
+	@cmd /c start "" "reports\\quality_report.md"
