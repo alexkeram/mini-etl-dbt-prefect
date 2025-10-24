@@ -165,10 +165,18 @@ python -c "from flows.etl_flow import etl_flow; etl_flow(project_dir='.', thread
 ## Continuous Integration (CI)
 
 `.github/workflows/ci.yml` runs on push/PR:
-- **Ruff** (lint)
-- **Pytest** (unit tests)
+- Checkout & Python 3.12 on Ubuntu runner.
+- Init environment via make init (venv, deps, pre-commit).
+- Code quality: make lint (Ruff).
+- Unit tests: make pytest-only (fast Pytest pass).
+- dbt pipeline:
+  - make dbt-deps — install dbt packages,
+  - make dbt-seed — load CSV seeds into DuckDB,
+  - make dbt-run — build models,
+  - make dbt-test — run dbt tests.
+- Uses the project-local profile via DBT_PROFILES_DIR=./profiles.
 
-> dbt execution can be added to CI later, once models are stable and CI artifacts are sized appropriately.
+Result: any lint/test/dbt failure fails the CI, so PRs only merge when code and data checks are green.
 
 ## Data Quality Report
 
