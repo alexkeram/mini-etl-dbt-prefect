@@ -24,7 +24,7 @@ jobs:
         run: make init
 
       - name: Ruff check
-        run: ruff check .
+        run: make lint
 
       - name: Pytest
         run: pytest -q
