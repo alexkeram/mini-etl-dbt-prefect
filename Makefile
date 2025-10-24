@@ -52,6 +52,10 @@ lint:
 	@echo ">>> Ruff check"
 	@$(PY) -m ruff check .
 
+pytest-only:
+	@echo ">>> Pytest"
+	@$(PY) -m pytest -q
+
 dbt-deps:
 	@echo ">>> dbt deps"
 	@$(DBT_ENV) "$(DBT)" deps
@@ -101,7 +105,7 @@ docs-serve:
 	@echo ">>> dbt docs serve (Ctrl+C to stop)"
 	@$(DBT_ENV) "$(DBT)" docs serve --port 8080 --no-browser
 
-# Windows-only schedule shortcuts. Safe no-ops on other OS.
+# Windows schedule shortcuts. Safe no-ops on other OS.
 
 schedule:
 	@echo ">>> Registering Windows Task Scheduler job (02:00 daily)"
