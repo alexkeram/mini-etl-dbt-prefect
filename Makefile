@@ -46,7 +46,13 @@ init: venv
 	fi
 	@echo ">>> Installing sitecustomize to venv"
 	@$(PY) tools/install_sitecustomize.py
-	@echo ">>> Done. Venv ready, pre-commit installed."
+	@echo ">>> Done. Pre-commit installed."
+	@$(PY) -m ipykernel install --user --name mini-etl --display-name "Python (mini-etl-dbt-prefect)"
+	@echo ">>> Done. Venv ready."
+
+kernel:
+	@echo ">>> Registering Jupyter kernel for this venv"
+	@$(PY) -m ipykernel install --user --name mini-etl --display-name "Python (mini-etl)"
 
 lint:
 	@echo ">>> Ruff check"

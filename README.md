@@ -1,189 +1,166 @@
 # mini-etl-dbt-prefect
 
-Reproducible ETL showing **raw → staging → marts** on **DuckDB** with **dbt**, orchestrated by **Prefect**.
-Optimized for **local speed**, **one-click run**, and **quality via dbt tests**.
+Reproducible ETL on DuckDB with dbt, orchestrated by Prefect. Optimized for local speed, one‑click run, and quality via dbt tests.
 
 ---
 
 ## What's in the analytical part
 
-- Added **ML churn model (Logistic Regression, ROC AUC ≈ 0.93)** trained on marts-layer data.
-- Introduced **customer segmentation** (A/B/C) based on churn risk, profit, and behavior.
-- Implemented **Prefect + dbt + scikit-learn** integration for end-to-end reproducibility.
-- Added **EDA**, **feature interpretation (SHAP)**, and **business recommendations** sections.
+- ML churn model (Logistic Regression, ROC AUC ~0.93) trained on marts-layer data.
+- Customer segmentation (A/B/C) based on churn risk, profit, and behavior.
+- Prefect + dbt + scikit-learn integration for end-to-end reproducibility.
+- EDA, feature interpretation (SHAP), and business recommendations.
+- Results are documented in the final Jupyter notebook.
 
-Results are documented in the final Jupyter notebook.
+### Supervised Learning — model quality
+- Goal: predict probability of a decrease in customer activity and identify segments for personalized marketing.
+- Pipeline: dbt, Prefect, DuckDB, scikit-learn (reproducible, one‑click setup).
+- Model: ROC AUC ~0.93 enables early churn detection.
+- Focus segments:
+  - Segment A: retention of high‑value customers.
+  - Segment B: margin optimization among promo‑sensitive clients.
 
 ---
 
-## What this repository delivers (current state)
+## What this repository delivers
 
-- **Environment & Tooling**
-  - Reproducible local setup: `requirements.txt`, virtualenv, **Makefile** targets.
-  - Code quality gates: **pre-commit** (Black + Ruff) and **minimal CI** (Ruff + Pytest).
+- Environment and tooling
+  - Reproducible local setup: requirements.txt, virtualenv, Makefile targets.
+  - Code quality gates: pre-commit (Black and Ruff) and minimal CI (Ruff and Pytest).
 
-- **Data Warehouse (local)**
-  - **dbt + DuckDB** project with project-local **profiles** and seeds (CSV → DuckDB file).
-  - Clean **staging** models (typing, renaming, dedup/filters) and simple **marts** (dimension/fact).
+- Data warehouse (local)
+  - dbt and DuckDB project with project-local profiles and seeds (CSV to DuckDB file).
+  - Clean staging models (typing, renaming, deduplication and filters) and simple marts (dimension and fact).
 
-- **Data Quality**
-  - **dbt tests**: `not_null`, `unique`, `relationships`, and a custom check via
-    `dbt_utils.expression_is_true` (e.g., numeric non-negativity, date lower-bound).
+- Data quality
+  - dbt tests: not_null, unique, relationships, and a custom check via dbt_utils.expression_is_true (for example, numeric non‑negativity, date lower bound).
 
-- **Orchestration**
-  - **Prefect flow as code** running `dbt deps → dbt run → dbt test` with **retries** and **informative logs**.
-  - Single-command run: `make run`.
+- Orchestration
+  - Prefect flow as code running dbt deps, dbt seed, dbt run, dbt test with retries and informative logs.
+  - Single‑command run: make run.
 
-- **Data quality report**
-  - Generate a short, human-readable report from `dbt test` results
-> Scope intentionally minimal and fast for local demos and CI. No external infra or Prefect deployments required.
+- Data quality report
+  - Generates a short, human‑readable report from dbt test results.
 
 ---
 
 ## Prerequisites
 
-- **Python 3.12+**
-- **Git**
-- **GNU Make**
-  - Windows: install via Chocolatey — `choco install make`
-  - macOS (Xcode Command Line Tools) — `xcode-select --install`
-  - Linux — your package manager (`sudo apt install make`, `sudo dnf install make`, etc.)
-
-> If `make` is not available, see the **No-make fallback** below — but the recommended path is with `make`.
+- Python 3.12+
+- Git
+- GNU Make
+  - Windows: Chocolatey — choco install make
+  - macOS: Xcode Command Line Tools — xcode-select --install
+  - Linux: your package manager (for example, sudo apt install make)
 
 ---
 
-## 🚀 Setup & Run
+## Setup and run
 
 ```bash
 git clone https://github.com/alexkeram/mini-etl-dbt-prefect
 cd mini-etl-dbt-prefect
-make init     # creates .venv, upgrades pip, installs deps, installs & runs pre-commit
-make run      # runs Prefect flow: dbt deps → seed → run → test
-# optionally
-make test     # pytest + dbt test
+make init     # creates .venv, upgrades pip, installs deps, installs and runs pre-commit
+make run      # runs Prefect flow: dbt deps, seed, run, test
 ```
 
-That’s it — from clean clone to running flow in **two commands** (`make init`, `make run`).
-
----
-
-## No‑make fallback (optional)
-
-If you can’t (or somehow don’t want to) use `make`, you can run the same steps manually.
-Below are shell-agnostic recipes (PowerShell / Bash).
-
-### 1) Create a virtualenv and upgrade pip
-```bash
-# Use whichever command is available: python OR python3
-python -m venv .venv || python3 -m venv .venv
-./.venv/Scripts/python -m pip install --upgrade pip wheel || ./.venv/bin/python -m pip install --upgrade pip wheel
-```
-
-### 2) Install requirements and pre-commit hooks
-```bash
-./.venv/Scripts/python -m pip install -r requirements.txt || ./.venv/bin/python -m pip install -r requirements.txt
-./.venv/Scripts/python -m pre_commit install || ./.venv/bin/python -m pre_commit install
-./.venv/Scripts/python -m pre_commit run --all-files || ./.venv/bin/python -m pre_commit run --all-files
-```
-
-### 3) Run the flow
-```bash
-./.venv/Scripts/python -m flows.etl_flow || ./.venv/bin/python -m flows.etl_flow
-```
+From clean clone to running flow in two commands.
 
 ---
 
 ## Configuration
 
-### DuckDB & dbt
+### DuckDB and dbt
 
-- Project file: `dbt_project.yml`
-- Local profile: `profiles/profiles.yml` (project-local for reproducibility)
+- Project file: dbt_project.yml
+- Local profile: profiles/profiles.yml (project‑local for reproducibility)
 
-Example `profiles/profiles.yml`:
-```yaml
-mini_etl_profile:
-  target: dev
-  outputs:
-    dev:
-      type: duckdb
-      path: ./warehouse.duckdb
-      schema: analytics
-      threads: 4
-```
 
-The project already sets `DBT_PROFILES_DIR` to `./profiles` via the **Makefile**,
-so no extra env setup is required for standard runs.
+The project sets DBT_PROFILES_DIR=./profiles via the Makefile, so no extra environment setup is required for standard runs.
 
 ---
 
-## Makefile targets
+## Makefile commands
 
-```make
-init  # create venv, upgrade pip, install deps, install & run pre-commit
-run   # Prefect flow: dbt deps → seed → run → test
-test  # pytest + dbt test
-lint  # ruff check
-clean # remove caches
-```
+Core:
+- init: create venv, upgrade pip, install dependencies, install pre‑commit, run pre‑commit locally if not in CI
+- run: run the Prefect ETL flow
+- test: run pytest, then dbt test
+- lint: ruff check
+- clean: remove caches
+- clean-venv: remove .venv
+
+dbt helpers:
+- dbt-deps: dbt deps
+- dbt-seed: dbt seed
+- dbt-run: dbt run
+- dbt-test: dbt test
+- dbt-debug: dbt debug
+
+Docs:
+- docs: dbt docs generate (artifacts in ./target)
+- docs-serve: dbt docs serve on port 8080
+
+Windows scheduler:
+- schedule: register Windows Task Scheduler job
+- unschedule: remove the task
+- schedule-run: trigger now
+- schedule-status: show status
+
+Quality report:
+- quality: run dbt tests and generate reports/quality_report.md and .json
+- quality-open: open the Markdown report on Windows
 
 ---
 
 ## Windows schedule
 
-A venv-aware runner at `.venv/Scripts/run_etl.cmd` that:
-- uses `.venv/Scripts/python.exe`,
-- sets `DBT_PROFILES_DIR=./profiles`,
-- runs `python -m flows.etl_flow`,
-- logs to `./logs/cron.log`.
+A venv‑aware runner uses .venv/Scripts/python.exe, sets DBT_PROFILES_DIR=./profiles, runs python -m flows.etl_flow, and logs to ./logs/cron.log.
 
 Install the scheduled task (02:00 daily):
-
 ```bash
 make schedule
 make schedule-status
-make schedule-run   # trigger now to test; then check logs/cron.log
-make unschedule     # remove
+make schedule-run
+make unschedule
 ```
-You can change the schedule time in the .venv\Scripts\register_tsk.ps1 file.
-___
+Change the schedule time in scripts/register_task.ps1.
 
+---
 
-## Orchestration details (reference)
+## Orchestration details
 
-Flow entry point: `flows/etl_flow.py` runs the sequence
-`dbt deps → dbt seed → dbt run → dbt test` with retries and logs.
+Flow entry point: flows/etl_flow.py runs the sequence dbt deps, dbt seed, dbt run, dbt test with retries and logs.
 
-Run with custom params if needed:
+Run with custom parameters if needed:
 ```bash
 python -c "from flows.etl_flow import etl_flow; etl_flow(project_dir='.', threads=8, full_refresh=True)"
 ```
 
 ---
 
-## Continuous Integration (CI)
+## Continuous Integration
 
-`.github/workflows/ci.yml` runs on push/PR:
-- Checkout & Python 3.12 on Ubuntu runner.
-- Init environment via make init (venv, deps, pre-commit).
-- Code quality: make lint (Ruff).
-- Unit tests: make pytest-only (fast Pytest pass).
-- dbt pipeline:
-  - make dbt-deps — install dbt packages,
-  - make dbt-seed — load CSV seeds into DuckDB,
-  - make dbt-run — build models,
-  - make dbt-test — run dbt tests.
-- Uses the project-local profile via DBT_PROFILES_DIR=./profiles.
+.github/workflows/ci.yml runs on push or pull request:
+- Setup Python 3.12
+- make init
+- make lint
+- make pytest-only
+- make dbt-deps
+- make dbt-seed
+- make dbt-run
+- make dbt-test
 
-Result: any lint/test/dbt failure fails the CI, so PRs only merge when code and data checks are green.
+Any lint, test, or dbt failure fails the CI and blocks the PR.
 
-## Data Quality Report
+---
 
-Generate a short, human-readable report from `dbt test` results:
+## Data quality report
 
+Generate a report from dbt test results:
 ```bash
 make quality
 # outputs:
-# - reports/quality_report.md   (Markdown for humans)
-# - reports/quality_report.json (JSON for tooling)
+# - reports/quality_report.md
+# - reports/quality_report.json
+```
