@@ -48,11 +48,17 @@ init: venv
 	@$(PY) tools/install_sitecustomize.py
 	@echo ">>> Done. Pre-commit installed."
 	@$(PY) -m ipykernel install --user --name mini-etl --display-name "Python (mini-etl-dbt-prefect)"
+	@echo ">>> Pinning kernelspec into notebooks"
+	@$(PY) tools/pin_notebook_kernel.py
 	@echo ">>> Done. Venv ready."
 
 kernel:
 	@echo ">>> Registering Jupyter kernel for this venv"
 	@$(PY) -m ipykernel install --user --name mini-etl --display-name "Python (mini-etl)"
+
+pin-nb-kernel:
+	@echo ">>> Pinning 'mini-etl' kernelspec in notebooks"
+	@$(PY) tools/pin_notebook_kernel.py
 
 lint:
 	@echo ">>> Ruff check"
