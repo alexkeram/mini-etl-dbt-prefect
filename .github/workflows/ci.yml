@@ -7,10 +7,10 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    
+
     env:
       DBT_PROFILES_DIR: ${{ github.workspace }}/profiles
-      
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

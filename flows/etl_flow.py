@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
 import subprocess
 from typing import List, Optional
 
@@ -13,14 +15,30 @@ from datetime import timedelta
 def run_cmd(cmd: List[str], cwd: Optional[str] = None, env: Optional[dict] = None):
     """
     Run a shell command with live stdout/stderr forwarding.
-    Raises CalledProcessError on non-zero exit.
+    On Windows, ensure .venv/Scripts is on PATH so 'dbt' is resolvable in a fresh clone.
     """
     logger = get_run_logger()
+
+    # env
+    merged_env = dict(os.environ)
+    if env:
+        merged_env.update(env)
+
+    # --- Windows hardening: prepend .venv\Scripts to PATH ---
+    if os.name == "nt":
+        # .venv: ...\.venv\Scripts\python.exe
+        scripts_dir = Path(sys.executable).parent
+        if scripts_dir.exists():
+            path_val = merged_env.get("PATH", "")
+            scripts_str = str(scripts_dir)
+            if scripts_str.lower() not in path_val.lower():
+                merged_env["PATH"] = scripts_str + os.pathsep + path_val
+
     logger.info("Running: %s", " ".join(cmd))
     completed = subprocess.run(
         cmd,
         cwd=cwd,
-        env={**os.environ, **(env or {})},
+        env=merged_env,
         check=True,
         text=True,
     )
