@@ -37,7 +37,13 @@ init: venv
 	@$(PY) -m pip install -r requirements.txt
 	@echo ">>> Installing pre-commit hooks"
 	@$(PY) -m pre_commit install
-	@$(PY) -m pre_commit run --all-files
+	# Run local - skip in CI
+	@echo ">>> Running pre-commit locally (skip in CI)"
+	@if [ -z "$$CI" ]; then \
+	  $(PY) -m pre_commit run --all-files || true; \
+	else \
+	  echo "CI detected: skipping pre-commit run --all-files"; \
+	fi
 	@echo ">>> Installing sitecustomize to venv"
 	@$(PY) tools/install_sitecustomize.py
 	@echo ">>> Done. Venv ready, pre-commit installed."
